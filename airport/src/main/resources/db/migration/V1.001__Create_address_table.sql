@@ -1,0 +1,1 @@
+create table address (id bigint not null, city varchar(255), country varchar(255), street varchar(255), zip varchar(255), primary key (id));
