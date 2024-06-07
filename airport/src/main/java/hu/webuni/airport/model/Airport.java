@@ -3,6 +3,7 @@ package hu.webuni.airport.model;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.Size;
 
 import lombok.AllArgsConstructor;
@@ -29,6 +30,9 @@ public class Airport {
 	@Size(min = 3, max = 20)
 	private String name;
 	private String iata;
+
+	@ManyToOne
+	private Address address;
 	
 	public Airport(String name, String iata) {
 		this.name = name;
