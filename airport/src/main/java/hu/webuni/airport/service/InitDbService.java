@@ -2,6 +2,7 @@ package hu.webuni.airport.service;
 
 import java.time.LocalDateTime;
 
+import hu.webuni.airport.aspect.LogCall;
 import hu.webuni.airport.model.Address;
 import hu.webuni.airport.repository.AddressRepository;
 import hu.webuni.airport.repository.FlightRepository;
@@ -22,6 +23,8 @@ public class InitDbService {
 	private final AddressRepository addressRepository;
 	private final FlightRepository flightRepository;
 
+	@Transactional
+	@LogCall
 	public void deleteDb() {
 		flightRepository.deleteAll();
 		airportRepository.deleteAll();
