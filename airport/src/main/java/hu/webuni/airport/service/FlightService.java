@@ -2,15 +2,19 @@ package hu.webuni.airport.service;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledFuture;
 
 import com.google.common.collect.Lists;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import hu.webuni.airport.aspect.LogCall;
 import hu.webuni.airport.model.QFlight;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -28,7 +32,11 @@ public class FlightService {
 	
 	private final AirportRepository airportRepository;
 	private final FlightRepository flightRepository;
-	
+	private final DelayService delayService;
+	private final TaskScheduler taskScheduler;
+
+	private Map<Long, ScheduledFuture<?>> delayPollerJobs = new ConcurrentHashMap<>();
+
 	@Transactional
 	public Flight save(Flight flight) {
 		//a takeoff/landing airportból csak az id-t vesszük figyelembe, már létezniük kell
@@ -95,6 +103,38 @@ public class FlightService {
 		}
 
 		return Lists.newArrayList(flightRepository.findAll(Objects.requireNonNull(ExpressionUtils.allOf(predicates))));
+	}
+
+//	@Transactional --> hosszú tranzakció, mert a getDelay lassú
+//	@Scheduled(cron = "*/5 * * * * *")
+//	@SchedulerLock(name = "updateDelays")
+//	@Async
+	public void updateDelays() {
+		System.out.println("updateDelays called");
+		flightRepository.findAll().forEach(flight -> {
+			updateFlightWithDelay(flight);
+		});
+
+	}
+
+	private void updateFlightWithDelay(Flight flight) {
+		flight.setDelayInSec(delayService.getDelay(flight.getId()));
+		flightRepository.save(flight);
+	}
+
+	public void startDelayPollingForFlight(long flightId, long rate) {
+		ScheduledFuture<?> scheduledFuture = taskScheduler.scheduleAtFixedRate(() -> {
+			Optional<Flight> flightOptional = flightRepository.findById(flightId);
+			flightOptional.ifPresent(this::updateFlightWithDelay);
+		}, rate);
+
+		stopDelayPollingForFlight(flightId);
+		delayPollerJobs.put(flightId, scheduledFuture);
+	}
+
+	public void stopDelayPollingForFlight(long flightId) {
+		ScheduledFuture<?> scheduledFuture = delayPollerJobs.get(flightId);
+		if (scheduledFuture != null) scheduledFuture.cancel(false);
 	}
 
 }
