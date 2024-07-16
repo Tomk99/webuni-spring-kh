@@ -9,6 +9,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.envers.Audited;
 
 import java.util.Set;
 
@@ -20,6 +21,7 @@ import java.util.Set;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @Cacheable
+@Audited
 public class Airport {
 	
 	@Id
@@ -39,6 +41,9 @@ public class Airport {
 	private Set<Flight> departures;
 	@OneToMany(mappedBy = "landing")
 	private Set<Flight> arrivals;
+	@OneToMany
+	@JoinColumn(name = "airport_id")
+	private Set<Image> images;
 
 	public Airport(String name, String iata) {
 		this.name = name;

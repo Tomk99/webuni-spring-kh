@@ -4,6 +4,16 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
+import hu.webuni.airport.model.Address;
+import hu.webuni.airport.model.HistoryData;
+import hu.webuni.airport.model.Image;
+import hu.webuni.airport.repository.ImageRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import org.hibernate.envers.AuditReaderFactory;
+import org.hibernate.envers.DefaultRevisionEntity;
+import org.hibernate.envers.RevisionType;
+import org.hibernate.envers.query.AuditEntity;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,6 +28,10 @@ import lombok.RequiredArgsConstructor;
 public class AirportService {
 
 	private final AirportRepository airportRepository;
+	private final ImageRepository imageRepository;
+
+	@PersistenceContext
+	private EntityManager entityManager;
 
 	@Transactional
 	public Airport save(Airport airport) {
@@ -70,5 +84,43 @@ public class AirportService {
 		airports = airportRepository.findByIdWithArrivals(airportIds);
 		airports = airportRepository.findByIdWithDepartures(airportIds);
 		return airports;
+	}
+
+	@Transactional
+	@SuppressWarnings("unchecked")
+	public List<HistoryData<Airport>> getAirportHistory(long id) {
+
+		return AuditReaderFactory.get(entityManager)
+				.createQuery()
+				.forRevisionsOfEntity(Airport.class, false, true)
+				.add(AuditEntity.property("id").eq(id))
+				.getResultList()
+				.stream().map(o -> {
+					Object[] objArray = (Object[]) o;
+					DefaultRevisionEntity revisionEntity = (DefaultRevisionEntity) objArray[1];
+					Airport airport = (Airport) objArray[0];
+					Address address = airport.getAddress();
+					if (address != null) address.getCity();
+					airport.getArrivals().size();
+					airport.getDepartures().size();
+					return new HistoryData<Airport>(
+							airport,
+							(RevisionType) objArray[2],
+							revisionEntity.getId(),
+							revisionEntity.getRevisionDate()
+					);
+				}).toList();
+	}
+
+	@Transactional
+	public Image saveImageForAirport(long airportId, String fileName, byte[] bytes) {
+		Airport airport = airportRepository.findById(airportId).orElseThrow(NoSuchElementException::new);
+		Image image = Image.builder()
+				.data(bytes)
+				.fileName(fileName)
+				.build();
+		image = imageRepository.save(image);
+		airport.getImages().add(image);
+		return image;
 	}
 }
