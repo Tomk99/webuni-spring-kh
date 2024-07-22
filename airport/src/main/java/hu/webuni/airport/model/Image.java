@@ -3,26 +3,23 @@ package hu.webuni.airport.model;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.envers.Audited;
 
-@Getter
-@Setter
+@Entity
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@Entity
 @Audited
-public class Address {
+public class Image {
 
     @Id
     @GeneratedValue
-    @EqualsAndHashCode.Include()
     private long id;
-
-    private String country;
-    private String city;
-    private String street;
-    private String zip;
+    private String fileName;
+    private byte[] data;
 }

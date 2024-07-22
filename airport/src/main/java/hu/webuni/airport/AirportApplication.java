@@ -8,9 +8,11 @@ import hu.webuni.airport.service.AirportService;
 import hu.webuni.airport.service.InitDbService;
 import hu.webuni.airport.service.PriceService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.EnableCaching;
 
 @RequiredArgsConstructor
 @SpringBootApplication
+@EnableCaching
 public class AirportApplication implements CommandLineRunner {
 
 	private final PriceService priceService;
@@ -24,8 +26,9 @@ public class AirportApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-		initDbService.deleteDb();
-		initDbService.addInitData();
+//		initDbService.deleteDb();
+//		initDbService.deleteAudTables();
+//		initDbService.addInitData();
 	}
 
 }

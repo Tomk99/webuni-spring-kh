@@ -6,6 +6,7 @@ import hu.webuni.airport.aspect.LogCall;
 import hu.webuni.airport.model.Address;
 import hu.webuni.airport.repository.AddressRepository;
 import hu.webuni.airport.repository.FlightRepository;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,7 @@ public class InitDbService {
 	private final FlightService flightService;
 	private final AddressRepository addressRepository;
 	private final FlightRepository flightRepository;
+	private final JdbcTemplate jdbcTemplate;
 
 	@Transactional
 	@LogCall
@@ -29,6 +31,13 @@ public class InitDbService {
 		flightRepository.deleteAll();
 		airportRepository.deleteAll();
 		addressRepository.deleteAll();
+	}
+
+	@Transactional
+	public void deleteAudTables() {
+		jdbcTemplate.update("delete from address_aud");
+		jdbcTemplate.update("delete from airport_aud");
+		jdbcTemplate.update("delete from flight_aud");
 	}
 
 	@Transactional
@@ -48,9 +57,9 @@ public class InitDbService {
 		Airport airport4 = airportRepository.save(new Airport("airport4", "LGW"));
 		airport4.setAddress(address4);
 
-		flightService.save(new Flight(0, "ABC123", LocalDateTime.of(2022, 6, 10, 10, 10), airport1, airport2));
-		flightService.save(new Flight(0, "ABC456", LocalDateTime.of(2022, 6, 10, 12, 10), airport2, airport3));
-		flightService.save(new Flight(0, "DEF234", LocalDateTime.of(2022, 6, 12, 14, 10), airport2, airport4));
-		flightService.save(new Flight(0, "GHI345", LocalDateTime.of(2022, 6, 13, 16, 10), airport4, airport1));
+		flightService.save(new Flight(0, "ABC123", LocalDateTime.of(2022, 6, 10, 10, 10), airport1, airport2, null));
+		flightService.save(new Flight(0, "ABC456", LocalDateTime.of(2022, 6, 10, 12, 10), airport2, airport3, null));
+		flightService.save(new Flight(0, "DEF234", LocalDateTime.of(2022, 6, 12, 14, 10), airport2, airport4, null));
+		flightService.save(new Flight(0, "GHI345", LocalDateTime.of(2022, 6, 13, 16, 10), airport4, airport1, null));
 	}
 }

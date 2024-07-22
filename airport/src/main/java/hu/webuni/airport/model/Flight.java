@@ -2,16 +2,14 @@ package hu.webuni.airport.model;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.envers.Audited;
 
 @Getter
 @Setter
@@ -19,6 +17,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
+@Audited
 public class Flight {
 
 	@Id
@@ -34,6 +33,7 @@ public class Flight {
 	
 	@ManyToOne
 	private Airport landing;
-	
-	
+
+	@Column(name = "delay")
+	private Integer delayInSec;
 }
