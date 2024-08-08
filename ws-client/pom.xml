@@ -31,6 +31,7 @@
         <configuration>
           <packageName>hu.webuni.airport.wsclient</packageName>
           <wsdlUrls>http://localhost:8080/services/airport?wsdl</wsdlUrls>
+          <bindingDirectory>${basedir}/wsdl</bindingDirectory>
         </configuration>
 
       </plugin>
